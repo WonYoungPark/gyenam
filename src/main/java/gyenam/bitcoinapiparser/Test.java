@@ -1,11 +1,10 @@
 package gyenam.bitcoinapiparser;
 
-import gyenam.bitcoinapiparser.domain.Common;
-import gyenam.bitcoinapiparser.domain.Ticker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
+import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
@@ -15,16 +14,17 @@ public class Test {
     public static void main(String[] args) {
         log.info("시작");
 
-        Common<Ticker> common = webClient.get()
-                .uri("/public/ticker/ALL")
+        Mono<Object> obj = webClient.get()
+                .uri("/public/ticker/BTC")
                 .accept(MediaType.ALL)
-                .exchange()
-                //.retrieve()
+                .retrieve()
+                .bodyToMono(Object.class)
+                //.bodyToMono(Ticker.class)
                 //.bodyToMono(String.class)
-                .flatMap(response ->
-                    response.bodyToMono(Common.class)
-                )
-                .block()
+//                .flatMap(response ->
+//                    response.bodyToMono(Common.class)
+//                )
+
                 ;
 
         log.info("끝");
