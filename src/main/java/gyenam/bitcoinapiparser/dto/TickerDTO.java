@@ -1,17 +1,21 @@
-package gyenam.bitcoinapiparser.domain;
+package gyenam.bitcoinapiparser.dto;
 
-import lombok.Builder;
-import lombok.Data;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.Getter;
+import lombok.Setter;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
-@Document(collection = "ticker")
-@Data
-@Builder
-public class Ticker {
+/**
+ * Created by One0 on 2018. 1. 14..
+ *
+ * bithumb 거래소 마지막 거래 정보
+ * https://api.bithumb.com/public/ticker/{currency}
+ * {currency} = BTC, ETH, DASH, LTC, ETC, XRP, BCH, XMR, ZEC, QTUM, BTG, EOS (기본값: BTC), ALL(전체)
+ */
+@Getter
+@Setter
+public class TickerDTO {
     @NotNull
     @Min(value = 0)
     private long opening_price;  // 최근 24시간 내 시작 거래금액
@@ -52,6 +56,35 @@ public class Ticker {
     @Min(value = 0)
     private long sell_price;     // 거래 대기건 최소 판매가
 
-    @NotBlank
     private String date;         // 현재 시간 Timestamp
+
+    @Getter
+    @Setter
+    public static class GET_ALL {
+        private String status;
+        private Data data;
+
+        public static class Data {
+            public TickerDTO BTC;
+            public TickerDTO ETH;
+            public TickerDTO DASH;
+            public TickerDTO LTC;
+            public TickerDTO ETC;
+            public TickerDTO XRP;
+            public TickerDTO BCH;
+            public TickerDTO XMR;
+            public TickerDTO ZEC;
+            public TickerDTO QTUM;
+            public TickerDTO BTG;
+            public TickerDTO EOS;
+            public String date;
+        }
+    }
+
+    @Getter
+    @Setter
+    public static class GET {
+        private String status;
+        private TickerDTO data;
+    }
 }

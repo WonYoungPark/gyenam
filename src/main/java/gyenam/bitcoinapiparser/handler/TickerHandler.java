@@ -1,15 +1,16 @@
 package gyenam.bitcoinapiparser.handler;
 
-import gyenam.bitcoinapiparser.domain.Ticker;
+import gyenam.bitcoinapiparser.common.CoinType;
+import gyenam.bitcoinapiparser.dto.TickerDTO;
 import gyenam.bitcoinapiparser.repository.TickerRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.server.ServerRequest;
 import org.springframework.web.reactive.function.server.ServerResponse;
 import reactor.core.publisher.Mono;
-
-import static org.springframework.web.reactive.function.BodyInserters.fromObject;
 
 @Component
 @Slf4j
@@ -17,54 +18,28 @@ public class TickerHandler {
     @Autowired
     private TickerRepository tickerRepository;
 
-    public Mono<ServerResponse> getList(ServerRequest request) {
-        return ServerResponse.ok()
-                .body(tickerRepository.findAll(), Ticker.class);
-    }
+    public Mono<ServerResponse> get(ServerRequest request) {
+        String currency = request.pathVariable("currency");
+        String coinType = CoinType.valueOf(currency).getValue();
 
-    public Mono<ServerResponse> save(ServerRequest request) {
         final String HOST = "https://api.bithumb.com";
         final String URI  = "/public/ticker/{currency}";
 
-//        WebClient webClient = WebClient.builder()
-//                .baseUrl(HOST)
-//                .build();
-//
-//        webClient.get().uri(URI, "BTC")
-//        .exchange()
-//                .then(response -> ServerResponse.ok().build());
-////                .map((response) -> {
-////                    log.info(response.toString());
-////                    return response;
-////                })
-//
-////        .then(response -> ServerResponse.ok().body(fromObject(response)));
-//        return WebClient.builder()
-//                .baseUrl(HOST)
-//                .build().get().uri(URI, "BTC")
-//                .exchange()
-//                .then(response -> {
-//                   return ServerResponse.ok().build();
-
-        return ServerResponse.ok().body(fromObject(""));
+        return WebClient.create(HOST).get().uri(URI, coinType).accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(response -> response.bodyToMono(TickerDTO.GET.class))
+                .flatMap(mono -> ServerResponse.ok().syncBody(mono))
+                ;
     }
 
+    public Mono<ServerResponse> getList(ServerRequest request) {
+        final String HOST = "https://api.bithumb.com";
+        final String URI  = "/public/ticker/{currency}";
 
-    public Mono<ServerResponse> test(ServerRequest request) {
-        log.info("1");
-
-        Mono<ServerResponse> result = ServerResponse
-                .ok()
-                .body(Mono.fromSupplier(() -> test()), String.class)
-                .log();
-
-        log.info("2");
-        return result;
-    }
-
-
-    private String test() {
-        log.info("test-메소드 실행");
-        return "test-end";
+        return WebClient.create(HOST).get().uri(URI, CoinType.ALL).accept(MediaType.APPLICATION_JSON)
+                .exchange()
+                .flatMap(response -> response.bodyToMono(TickerDTO.GET_ALL.class))
+                .flatMap(mono -> ServerResponse.ok().syncBody(mono))
+                ;
     }
 }
